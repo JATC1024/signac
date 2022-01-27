@@ -23,6 +23,8 @@
 #include <H5Cpp.h>
 #include <highfive/H5File.hpp>
 #include <highfive/H5Group.hpp>
+#include <highfive/H5Object.hpp>
+#include <highfive/H5Easy.hpp>
 
 // [[Rcpp::depends(Rhdf5lib)]]
 // [[Rcpp::depends(RcppProgress)]]
@@ -141,19 +143,7 @@ public:
 
     std::vector<std::string> get_names() {
         std::vector<std::string> gene;
-        HighFive::DataSet datasetVec = this->file.getDataSet(group_name + "/barcodes");
-        HighFive::DataSpace dataSpace = datasetVec.getSpace();
-        std::vector<size_t> dims = dataSpace.getDimensions();
-        HighFive::DataType dataType = datasetVec.getDataType();
-        size_t str_size = H5Tget_size(dataType.getId());
-        H5T_str_t str_pad = H5Tget_strpad(dataType.getId());
-        H5T_cset_t str_cset = H5Tget_cset(dataType.getId());
-
-        if((str_pad == H5T_STR_NULLTERM) && (str_cset == H5T_CSET_UTF8))
-            datasetVec.read(gene);
-        else
-            datasetVec.read(gene, str_size, str_pad, str_cset, dims[0]);
-
+        gene = H5Easy::load<std::vector<std::string>>(file, group_name + "/barcodes");
         return gene;
     }
 
